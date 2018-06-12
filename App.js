@@ -1,35 +1,46 @@
 import React from 'react'
 import { observable, computed } from 'mobx'
 import { observer } from 'mobx-react'
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native'
+import smiley1 from './assets/smileys_1.png'
+import smiley2 from './assets/smileys_2.png'
+import smiley3 from './assets/smileys_3.png'
+import smiley4 from './assets/smileys_4.png'
+import smiley5 from './assets/smileys_5.png'
+import smiley6 from './assets/smileys_6.png'
+
+const smileys = {
+  1: smiley1,
+  2: smiley2,
+  3: smiley3,
+  4: smiley4,
+  5: smiley5,
+  6: smiley6,
+}
 
 class GradeStore {
   @observable grades = ['']
 
   @computed
   get average() {
-    if(this.hasInvalidGrades()){
+    const validGrades = this.grades.filter(grade => !isNaN(parseInt(grade)))
+    if (validGrades.length === 0) {
       return ''
     }
-
-    let sum = 0
-    this.grades.forEach(grade => {
-      sum = sum + grade
-    })
-
-    return sum / this.grades.length
-  }
-
-  hasInvalidGrades() {
-    return this.grades.find(grade => isNaN(parseInt(grade))) !== undefined
+    const sum = validGrades.reduce((prev, curr) => prev + parseInt(curr), 0)
+    return sum / validGrades.length
   }
 
   addGrade() {
     this.grades.push('')
   }
 
+  removeGrade(index) {
+    this.grades.splice(index, 1)
+  }
+
   setGrade(grade, index) {
-    this.grades[index] = parseInt(grade)
+    this.grades[index] = grade
   }
 }
 
@@ -54,8 +65,9 @@ export default class App extends React.Component {
         <TextInput
           style={styles.gradeInput}
           onChangeText={text => gradesStore.setGrade(text, index)}
-          value={String(gradesStore.grades[index])}
+          value={gradesStore.grades[index]}
         />
+        <Button title="X" onPress={() => gradesStore.removeGrade(index)} />
       </View>
     )
   }
@@ -129,3 +141,4 @@ const styles = StyleSheet.create({
     height: 25,
   },
 })
+//        <Image source={smileys[grade]} style={styles.smiley} />
