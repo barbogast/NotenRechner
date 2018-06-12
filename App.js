@@ -1,4 +1,6 @@
 import React from 'react'
+import { observable, computed } from 'mobx'
+import { observer } from 'mobx-react'
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native'
 import smiley1 from './assets/smileys_1.png'
 import smiley2 from './assets/smileys_2.png'
@@ -16,6 +18,34 @@ const smileys = {
   6: smiley6,
 }
 
+class GradeStore {
+  @observable grades = ['']
+
+  @computed
+  get average() {
+    const validGrades = this.grades.filter(grade => !isNaN(parseInt(grade)))
+    if (validGrades.length === 0) {
+      return ''
+    }
+    const sum = validGrades.reduce((prev, curr) => prev + parseInt(curr), 0)
+    return sum / validGrades.length
+  }
+
+  addGrade() {
+    this.grades.push('')
+  }
+
+  removeGrade(index) {
+    this.grades.splice(index, 1)
+  }
+
+  setGrade(grade, index) {
+    this.grades[index] = grade
+  }
+}
+
+const gradesStore = new GradeStore()
+
 const Button = ({ title, onPress }) => {
   return (
     <View style={styles.buttonContainer}>
@@ -26,60 +56,18 @@ const Button = ({ title, onPress }) => {
   )
 }
 
+@observer
 export default class App extends React.Component {
-  constructor() {
-    super()
-    this.addGrade = this.addGrade.bind(this)
-    this.calculate = this.calculate.bind(this)
-    this.renderGradeRow = this.renderGradeRow.bind(this)
-    this.setGrade = this.setGrade.bind(this)
-    this.removeGrade = this.removeGrade.bind(this)
-
-    this.state = {
-      grades: [''],
-      average: '',
-    }
-  }
-
-  addGrade() {
-    this.setState({
-      ...this.state,
-      grades: this.state.grades.concat(''),
-    })
-  }
-
-  removeGrade(index) {
-    this.setState({
-      ...this.state,
-      grades: this.state.grades.filter((grade, i) => i !== index),
-    })
-  }
-
-  setGrade(grade, index) {
-    this.setState({
-      ...this.state,
-      grades: this.state.grades.map((g, i) => (i === index ? grade : g)),
-    })
-  }
-
-  calculate() {
-    const sum = this.state.grades.reduce((prev, curr) => prev + parseInt(curr), 0)
-    this.setState({
-      ...this.state,
-      average: sum / this.state.grades.length,
-    })
-  }
-
   renderGradeRow(grade, index) {
     return (
       <View style={styles.row} key={'graderow' + index}>
         <Text>Note {index + 1}:</Text>
         <TextInput
           style={styles.gradeInput}
-          onChangeText={text => this.setGrade(text, index)}
-          value={this.state.grades[index]}
+          onChangeText={text => gradesStore.setGrade(text, index)}
+          value={gradesStore.grades[index]}
         />
-        <Button title="X" onPress={() => this.removeGrade(index)} />
+        <Button title="X" onPress={() => gradesStore.removeGrade(index)} />
         <Image source={smileys[grade]} style={styles.smiley} />
       </View>
     )
@@ -91,13 +79,12 @@ export default class App extends React.Component {
         <View style={styles.innerContainer}>
           <Text style={styles.heading}>Noten Rechner</Text>
 
-          {this.state.grades.map(this.renderGradeRow)}
+          {gradesStore.grades.map(this.renderGradeRow)}
 
-          <Button title="Note hinzufügen" onPress={this.addGrade} />
+          <Button title="Note hinzufügen" onPress={() => gradesStore.addGrade()} />
 
           <View style={styles.average}>
-            <Button title="Durchschnitt berechnen" onPress={this.calculate} />
-            <Text>Durchschnitt: {this.state.average}</Text>
+            <Text>Durchschnitt: {gradesStore.average}</Text>
           </View>
         </View>
       </View>
