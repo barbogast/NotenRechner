@@ -1,29 +1,31 @@
 import React from 'react'
 import { observable, computed } from 'mobx'
 import { observer } from 'mobx-react'
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native'
-import smiley1 from './assets/smileys_1.png'
-import smiley2 from './assets/smileys_2.png'
-import smiley3 from './assets/smileys_3.png'
-import smiley4 from './assets/smileys_4.png'
-import smiley5 from './assets/smileys_5.png'
-import smiley6 from './assets/smileys_6.png'
-
-const smileys = {
-  1: smiley1,
-  2: smiley2,
-  3: smiley3,
-  4: smiley4,
-  5: smiley5,
-  6: smiley6,
-}
+import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native'
 
 class GradeStore {
-  @observable grades = [0, 0, 0]
+  @observable grades = ['']
 
   @computed
   get average() {
-    return '?'
+    if(this.hasInvalidGrades()){
+      return ''
+    }
+
+    let sum = 0
+    this.grades.forEach(grade => {
+      sum = sum + grade
+    })
+
+    return sum / this.grades.length
+  }
+
+  hasInvalidGrades() {
+    return this.grades.find(grade => isNaN(parseInt(grade))) !== undefined
+  }
+
+  addGrade() {
+    this.grades.push('')
   }
 
   setGrade(grade, index) {
@@ -33,28 +35,42 @@ class GradeStore {
 
 const gradesStore = new GradeStore()
 
+const Button = ({ title, onPress }) => {
+  return (
+    <View style={styles.buttonContainer}>
+      <TouchableOpacity onPress={onPress}>
+        <Text style={styles.buttonText}>{title}</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
 
 @observer
 export default class App extends React.Component {
+  renderGradeRow(grade, index) {
+    return (
+      <View style={styles.row} key={'graderow' + index}>
+        <Text>Note {index + 1}:</Text>
+        <TextInput
+          style={styles.gradeInput}
+          onChangeText={text => gradesStore.setGrade(text, index)}
+          value={String(gradesStore.grades[index])}
+        />
+      </View>
+    )
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <View style={styles.innerContainer}>
           <Text style={styles.heading}>Noten Rechner</Text>
 
-          <View style={styles.row}>
-            <Text>Note 1: </Text>
-          </View>
+          {gradesStore.grades.map(this.renderGradeRow)}
 
-          <View style={styles.row}>
-            <Text>Note 2: </Text>
-          </View>
+          <Button title="Note hinzufügen" onPress={() => gradesStore.addGrade()} />
 
-          <View style={styles.row}>
-            <Text>Note 3: </Text>
-          </View>
-
-          <View>
+          <View style={styles.average}>
             <Text>Durchschnitt: {gradesStore.average}</Text>
           </View>
         </View>
@@ -79,8 +95,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   row: {
-    // flexDirection: 'row',
-    // alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   gradeInput: {
     width: 30,
@@ -91,11 +107,25 @@ const styles = StyleSheet.create({
     marginRight: 10,
     paddingHorizontal: 5,
   },
+  buttonContainer: {
+    alignItems: 'center',
+  },
+  buttonText: {
+    borderWidth: 1,
+    padding: 3,
+    borderColor: 'black',
+    backgroundColor: 'lightgrey',
+    marginVertical: 5,
+  },
+  average: {
+    borderWidth: 1,
+    borderColor: 'grey',
+    padding: 5,
+    marginTop: 20,
+  },
+  smiley: {
+    marginLeft: 10,
+    width: 25,
+    height: 25,
+  },
 })
-
-//             <TextInput style={styles.gradeInput} onChangeText={text => gradesStore.setGrade(text, 2)} value={gradesStore.grades[2]} />
-
-// average() {
-//   const sum = this.grades[0] + this.grades[1] + this.grades[2]
-//   return sum / 3
-// }
