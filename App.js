@@ -67,7 +67,8 @@ export default class App extends React.Component {
           onChangeText={text => gradesStore.setGrade(text, index)}
           value={gradesStore.grades[index]}
         />
-        <Button title="X" onPress={() => gradesStore.removeGrade(index)} />
+        <Button title="X" onPress={() => gradesStore.removeGrade(index)} />\
+        <Image source={smileys[grade]} style={styles.smiley} />
       </View>
     )
   }
@@ -141,4 +142,3 @@ const styles = StyleSheet.create({
     height: 25,
   },
 })
-//        <Image source={smileys[grade]} style={styles.smiley} />
